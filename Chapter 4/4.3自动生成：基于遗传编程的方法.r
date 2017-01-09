@@ -10,7 +10,7 @@ g<-function(f, a, b=NULL)
 }
 
 
-Dpow0_5<-function(x)return((x-min(x)+0.01)^0.5)
+Dpow0_5<-function(x)return((abs(x)+0.01)^0.5)
 Dpow3<-function(x)return(x^3)
 Dpow2<-function(x)return(x^2)
 Dinv<-function(x)return(1*sign(x)/(abs(x)+0.0001))
@@ -39,25 +39,25 @@ addOneGroup <- function(v, pstd = 0.3) {
 }
 # 构建满二叉树，并生成数学表达式
 genFullTreeExp <- function(v) {
-    N <- length(v)/2
-    midV <- NULL
-    for (i in 1:N) {
-        if (v[i] == "0" && v[i + N] != "0") {
-            midV <- c(midV, paste("g(", sample(oneGroup, 1), ",<", 
-            addOneGroup(v[i + N]), ">)", sep = ""))
-        } else if (v[i] != "0" && v[i + N] == "0") {
-            midV <- c(midV, paste("g(", sample(oneGroup, 1), ",<", 
-            addOneGroup(v[i]), ">)", sep = ""))
-        } else if (v[i] != "0" && v[i + N] != "0") {
-            midV <- c(midV, paste("g(", sample(twoGroup, 1), ",<", 
-            addOneGroup(v[i]), ">,<", addOneGroup(v[i + N]), ">)", sep = ""))
-        }
+  N <- length(v)/2
+  midV <- NULL
+  for (i in 1:N) {
+    if (v[i] == "0" && v[i + N] != "0") {
+      midV <- c(midV, paste("g(", sample(oneGroup, 1), ",<", 
+                            addOneGroup(v[i + N]), ">)", sep = ""))
+    } else if (v[i] != "0" && v[i + N] == "0") {
+      midV <- c(midV, paste("g(", sample(oneGroup, 1), ",<", 
+                            addOneGroup(v[i]), ">)", sep = ""))
+    } else if (v[i] != "0" && v[i + N] != "0") {
+      midV <- c(midV, paste("g(", sample(twoGroup, 1), ",<", 
+                            addOneGroup(v[i]), ">,<", addOneGroup(v[i + N]), ">)", sep = ""))
     }
-    if (length(midV) == 1) 
-        return(addOneGroup(midV)) 
-else {
-        genFullTreeExp(midV)
-    }
+  }
+  if (length(midV) == 1) 
+    return(addOneGroup(midV)) 
+  else {
+    genFullTreeExp(midV)
+  }
 }
 
 # 随机抽取N个特征下标
@@ -85,14 +85,14 @@ gsub(">", "", gsub("<", "", treeExp))
 #构建偏二叉树，并生成数学表达式
 genSideTreeExp<-function(v)
 {
-    #以一定的概率p，加上n(n通常为1)个一元运算符
-    if(length(v)==1)return(addOneGroup(v))
-    else{
-        v[2]=paste("g(",sample(twoGroup,1),",<",addOneGroup(v[1]),">,<",
-                         addOneGroup(v[2]),">)",sep="")
-        v[1]=NA
-        genSideTreeExp(as.character(na.omit(v)))
-    }
+  #以一定的概率p，加上n(n通常为1)个一元运算符
+  if(length(v)==1)return(addOneGroup(v))
+  else{
+    v[2]=paste("g(",sample(twoGroup,1),",<",addOneGroup(v[1]),">,<",
+               addOneGroup(v[2]),">)",sep="")
+    v[1]=NA
+    genSideTreeExp(as.character(na.omit(v)))
+  }
 }
 
 
@@ -114,29 +114,27 @@ gsub(">", "", gsub("<", "", treeExp))
 # dataName:字符串，表示所用数据集的对象
 # nMax:一次最多从特征中可放回抽样次数，默认为10
 randomGetTree <- function(dataName, featureIdx, nMax = 10) {
-    # 1.随机抽取N个特征下标
-    N <- sample(2:nMax, 1)
-    # 2.随机决定是使用满二叉树还是偏二叉树
-    if (sample(c(0, 1), 1) == 1) {
-        #评估满二叉树，叶子节点的数量，通过生成虚拟节点，符合2^(H-1)个
-        #其中H为二叉树的深度，
-        # ...对生成的结果随机排序，并生成特征字符向量
-      selFidx <- sample(c(sample(featureIdx, N, replace = T), 
-                    rep(0, 2^ceiling(log(N)/log(2)) - N)))
-      selFidx[selFidx > 0] = paste(dataName, "[,", selFidx[selFidx > 0], "]", 
-            sep = "")
-      treeExp = genFullTreeExp(selFidx)
-    } else {
-        # 构建偏二叉树，并生成数学表达式
-        selFidx <- sample(featureIdx, N, replace = T)
-        selFidx = paste(dataName, "[,", selFidx, "]", sep = "")
-        treeExp = genSideTreeExp(selFidx)
-    }
-    # 3.返回二叉树表达式和适应度结果
-    return(treeExp)
+  # 1.随机抽取N个特征下标
+  N <- sample(2:nMax, 1)
+  # 2.随机决定是使用满二叉树还是偏二叉树
+  if (sample(c(0, 1), 1) == 1) {
+    #评估满二叉树，叶子节点的数量，通过生成虚拟节点，符合2^(H-1)个
+    #其中H为二叉树的深度，
+    # ...对生成的结果随机排序，并生成特征字符向量
+    selFidx <- sample(c(sample(featureIdx, N, replace = T), 
+                        rep(0, 2^ceiling(log(N)/log(2)) - N)))
+    selFidx[selFidx > 0] = paste(dataName, "[,", selFidx[selFidx > 0], "]", 
+                                 sep = "")
+    treeExp = genFullTreeExp(selFidx)
+  } else {
+    # 构建偏二叉树，并生成数学表达式
+    selFidx <- sample(featureIdx, N, replace = T)
+    selFidx = paste(dataName, "[,", selFidx, "]", sep = "")
+    treeExp = genSideTreeExp(selFidx)
+  }
+  # 3.返回二叉树表达式和适应度结果
+  return(treeExp)
 }
-
-
 out = randomGetTree("iris", 1:4)
 out
 ## [1] "g(Ddiv,<g(Dadd,<iris[,3]>,<iris[,2]>)>,<g(Dpow3,<iris[,1]>)>)"
@@ -204,30 +202,30 @@ library(stringr)
 # 该函数基于特征表达式treeExp，绘制二叉树
 plotTree<-function(treeExp)
 {
-    library(igraph)
-    idcount<<-0
-    idList<<-NULL
-    verNames<<-NULL
-    isLeaf<<-NULL
-    arws=getEdgeVR(treeExp,1)
-    p_vertices=data.frame(idList,verNames,isLeaf)
-    p_edges<-NULL
-    for(obj in arws)
-    {
-        tmp<-strsplit(obj," -> ")[[1]]
-        tmpN<-length(tmp)
-        p_edges<-rbind(p_edges,data.frame(from=tmp[1:(tmpN-1)],
-to=tmp[2:tmpN]))
-    }
-    p_edges=p_edges[complete.cases(p_edges),]
-    p_edges=unique(p_edges)
-    p_vertices.color=rep("Turquoise",nrow(p_vertices))
-    p_vertices.color[p_vertices$isLeaf==1]="Orange"
-    gg<-graph.data.frame(d=p_edges,directed=F,vertices=p_vertices)
-    plot(gg,layout=layout.reingold.tilford,
-         vertex.label=as.character(p_vertices$verNames),
-         vertex.label.dist=0,vertex.color=p_vertices.color,
-         vertex.label.color='Maroon',vertex.label.cex=1.2)
+  library(igraph)
+  idcount<<-0
+  idList<<-NULL
+  verNames<<-NULL
+  isLeaf<<-NULL
+  arws=getEdgeVR(treeExp,1)
+  p_vertices=data.frame(idList,verNames,isLeaf)
+  p_edges<-NULL
+  for(obj in arws)
+  {
+    tmp<-strsplit(obj," -> ")[[1]]
+    tmpN<-length(tmp)
+    p_edges<-rbind(p_edges,data.frame(from=tmp[1:(tmpN-1)],
+                                      to=tmp[2:tmpN]))
+  }
+  p_edges=p_edges[complete.cases(p_edges),]
+  p_edges=unique(p_edges)
+  p_vertices.color=rep("Turquoise",nrow(p_vertices))
+  p_vertices.color[p_vertices$isLeaf==1]="Orange"
+  gg<-graph.data.frame(d=p_edges,directed=TRUE,vertices=p_vertices)
+  plot(gg,layout=layout.reingold.tilford,
+       vertex.label=as.character(p_vertices$verNames),
+       vertex.label.dist=0,vertex.color=p_vertices.color,
+       vertex.label.color='Maroon',vertex.label.cex=1.2)
 }
 
 
@@ -244,7 +242,7 @@ genIndividuals<-function(k,ksubs,nMax=10)
         singleTerms<-NULL
         for(j in 1:ksubs)
         {
-            singleTerms<-c(singleTerms,randomGetTree(vdata,vfeatures,nMax))
+            singleTerms<-c(singleTerms,randomGetTree('vdata',vfeatures,nMax))
         }
         individuals<-rbind(individuals,singleTerms)
         adjusts=c(adjusts,getAdjust(singleTerms))
@@ -259,89 +257,89 @@ genIndividuals<-function(k,ksubs,nMax=10)
 #计算适应度：对于回归问题，通常通过计算交叉验证的误差平方和降低量作为适应度
 getAdjust<-function(treeExpArray)
 {
-    tempData=NULL
-    for(treeExp in treeExpArray)
+  tempData=NULL
+  for(treeExp in treeExpArray)
+  {
+    feature=eval(parse(text=gsub('>','',gsub('<','',treeExp))))
+    if(is.na(sd(feature)) || is.nan(sd(feature)) || sd(feature)==0)
     {
-        feature=eval(parse(text=gsub('>','',gsub('<','',treeExp))))
-        if(is.na(sd(feature)) || is.nan(sd(feature)) || sd(feature)==0)
-        {
-            feature=rep(0,NROW(feature))
-        }
-        tempData<-cbind(tempData,feature)
+      feature=rep(0,NROW(feature))
     }
-    colnames(tempData)=paste("X",1:NROW(treeExpArray),sep="")
-    tempData=data.frame(tempData)
-    tempData$Y=vdata$Y
-    newErr<-0
-    for(i in 1:13)
-    {
-        trainData=tempData[setdiff(1:13,i),]
-        testData=tempData[i,]
-        newfit<-lm(Y~.,data=trainData)
-        testData$newPred<-predict(newfit,testData)
-        newErr<-newErr+sum(abs(testData$Y-testData$newPred)^2)
-    }
-    interval=stdErr-newErr
-    if(interval<0)return(0)
-    return(interval)
+    tempData<-cbind(tempData,feature)
+  }
+  colnames(tempData)=paste("X",1:NROW(treeExpArray),sep="")
+  tempData=data.frame(tempData)
+  tempData$Y=vdata$Y
+  newErr<-0
+  for(i in 1:nrow(tempData))
+  {
+    trainData=tempData[setdiff(1:nrow(tempData),i),]
+    testData=tempData[i,]
+    newfit<-lm(Y~.,data=trainData)
+    testData$newPred<-predict(newfit,testData)
+    newErr<-newErr+sum(abs(testData$Y-testData$newPred)^2)
+  }
+  interval=stdErr-newErr
+  if(interval<0)return(0)
+  return(interval)
 }
 
 #对染色体进行交叉操作
 interCross <-function(individuals,p,dataName)
 {
-    L<-nrow(individuals)
-    individuals.reserve=NULL
-    if(L%%2==1)
+  L<-nrow(individuals)
+  individuals.reserve=NULL
+  if(L%%2==1)
+  {
+    reserve_gene_id<-sample(1:L,1)
+    individuals.reserve<-individuals[reserve_gene_id,]
+    individuals<-individuals[setdiff(1:L,reserve_gene_id),]
+    rownames(individuals)=NULL
+    L<-L-1
+  }
+  individuals$group=sample(rep(1:(L/2),2),L)
+  individuals.cross=NULL
+  for(i in 1:(L/2))
+  {
+    #随机生成一个概率值，如果小于p，则进行交叉，否则保留原始个体进入下一代
+    rand_p=runif(1,0,1)
+    sub0=individuals[individuals$group==i,]
+    #若发生交叉的两个个体基因型一样，那么随机生成一个与另外一个再交叉
+    t0=unlist(sub0[,1:needgs])
+    names(t0)=NULL
+    if(length(unique(t0))==needgs)
     {
-        reserve_gene_id<-sample(1:L,1)
-        individuals.reserve<-individuals[reserve_gene_id,]
-        individuals<-individuals[setdiff(1:L,reserve_gene_id),]
-        rownames(individuals)=NULL
-        L<-L-1
+      t0=genIndividuals(1,needgs)
+      t0$group=i
+      sub0[1,]=t0
     }
-    individuals$group=sample(rep(1:(L/2),2),L)
-    individuals.cross=NULL
-    for(i in 1:(L/2))
+    sub0$group=NULL
+    if(rand_p<p)
     {
-        #随机生成一个概率值，如果小于p，则进行交叉，否则保留原始个体进入下一代
-        rand_p=runif(1,0,1)
-        sub0=individuals[individuals$group==i,]
-        #若发生交叉的两个个体基因型一样，那么随机生成一个与另外一个再交叉
-        t0=unlist(sub0[,1:needgs])
-        names(t0)=NULL
-        if(length(unique(t0))==needgs)
-        {
-            t0=genIndividuals(1,needgs,dataName)
-            t0$group=i
-            sub0[1,]=t0
-        }
-        sub0$group=NULL
-        if(rand_p<p)
-        {
-            individuals.cross<-rbind(individuals.cross,icross(sub0))
-        }else{
-            individuals.cross<-rbind(individuals.cross,sub0)
-        }
+      individuals.cross<-rbind(individuals.cross,icross(sub0))
+    }else{
+      individuals.cross<-rbind(individuals.cross,sub0)
     }
-    individuals.cross=data.frame(individuals.cross)
-    individuals.cross=rbind(individuals.cross,individuals.reserve)
-    rownames(individuals.cross)=NULL
-    return(individuals.cross[,1:needgs])
+  }
+  individuals.cross=data.frame(individuals.cross)
+  individuals.cross=rbind(individuals.cross,individuals.reserve)
+  rownames(individuals.cross)=NULL
+  return(individuals.cross[,1:needgs])
 }
 #对染色体进行交叉操作
 icross<-function(subpair)
 {
-    subpair.all=NULL
-    subpair.all<-rbind(subpair.all,subpair[1,])
-    subpair.all<-rbind(subpair.all,subpair[2,])
-    #从1到needgs的基因位中，随机找1~(needgs/2)个，完成基因重组
-    geneLoc=sample(1:needgs,sample(1:(needgs/2),1))
-    subpair.one=subpair[1,]
-    subpair[1,geneLoc]=subpair[2,geneLoc]
-    subpair[2,geneLoc]=subpair.one[,geneLoc]
-    subpair.all<-rbind(subpair.all,subpair)
-    subpair.all=data.frame(subpair.all)
-    return(subpair.all)
+  subpair.all=NULL
+  subpair.all<-rbind(subpair.all,subpair[1,])
+  subpair.all<-rbind(subpair.all,subpair[2,])
+  #从1到needgs的基因位中，随机找1~(needgs/2)个，完成基因重组
+  geneLoc=sample(1:needgs,sample(1:(needgs/2),1))
+  subpair.one=subpair[1,]
+  subpair[1,geneLoc]=subpair[2,geneLoc]
+  subpair[2,geneLoc]=subpair.one[,geneLoc]
+  subpair.all<-rbind(subpair.all,subpair)
+  subpair.all=data.frame(subpair.all)
+  return(subpair.all)
 }
 
 A<-c("g(Dadd,<x1>,<x2>)","g(Dlog,<x1>)","g(Dadd,<g(Dlog,<x2>)>,<x3>)")
@@ -364,6 +362,7 @@ par(mfrow=c(1,1))
 indvs<-NULL
 indvs<-rbind(indvs,A)
 indvs<-rbind(indvs,B)
+needgs = 3
 indvs=data.frame(indvs,stringsAsFactors=F)
 out=interCross(indvs,p=0.85,'vdata')[3:4,]
 par(mfrow=c(2,3))
@@ -403,25 +402,30 @@ mutat<-function(individuals,p,dataName)
 indvs<-NULL
 indvs<-rbind(indvs,A)
 indvs=data.frame(indvs,stringsAsFactors=F)
+vfeatures = 1:4
 out=mutat(indvs,p=0.9,'vdata')
 ## [1] "第1个个体<1号基因>发生突变。"
-par(mfrow=c(2,3))
-plotTree(out[1,1])
-title("个体A-基因1（变异前）")
-plotTree(out[1,2])
-title("个体A-基因2（变异前）")
-plotTree(out[1,3])
-title("个体A-基因3（变异前）")
-plotTree(out[2,1])
-title("个体A-基因1（变异后）")
-plotTree(out[2,2])
-title("个体A-基因2（变异后）")
-plotTree(out[2,3])
-title("个体A-基因3（变异后）")
-par(mfrow=c(1,1))
+if(nrow(out)>1){
+  par(mfrow=c(2,3))
+  plotTree(out[1,1])
+  title("个体A-基因1（变异前）")
+  plotTree(out[1,2])
+  title("个体A-基因2（变异前）")
+  plotTree(out[1,3])
+  title("个体A-基因3（变异前）")
+  plotTree(out[2,1])
+  title("个体A-基因1（变异后）")
+  plotTree(out[2,2])
+  title("个体A-基因2（变异后）")
+  plotTree(out[2,3])
+  title("个体A-基因3（变异后）")
+  par(mfrow=c(1,1))
+}
+
 
 # 读入基础数据
-vdata = read.csv("C:\\Users\\haolin\\Desktop\\orgdata.csv", header = T)
+vdata = read.csv("C:/Users/cador/Desktop/1-test/orgdata.csv", header = T)
+vdata[,1]=NULL
 # 对X1~X4进行标准化处理
 vdata[, 1:4] = scale(vdata[, 1:4])
 vdata
@@ -449,7 +453,7 @@ vfeatures = 1:4
 popSize = 100
 # 设置特征长度为3
 needgs = 3
-individuals = genIndividuals(popSize, needgs, "vdata")
+individuals = genIndividuals(popSize, needgs)
 ##  [1]  0.00000 0.00000 0.00000 0.00000 0.00000 0.00000 0.00000 0.00000  
 ###         0.00000 0.00000 0.00000 0.00000 0.00000 0.00000
 ##  [15] 0.00000 0.00000 0.00000 0.00000 0.00000 0.00000 0.00000 0.00000 
@@ -515,7 +519,7 @@ for(treeExp in treeExpArray)
 colnames(tempData)=paste("X",1:needgs,sep="")
 tempData=data.frame(tempData)
 tempData$Y=vdata$Y
-head(tmpData)
+head(tempData)
 ##            X1          X2          X3     Y
 ## 1 -1.40214939 -0.04481223 -1.44205617  78.5
 ## 2 -1.87902769 -0.11870397 -2.23217894  74.3
@@ -531,4 +535,3 @@ title("特征-X2")
 plotTree(treeExpArray[1,3])
 title("特征-X3")
 par(mfrow=c(1,1))
-
